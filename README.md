@@ -1,4 +1,4 @@
-# springboot-istio-in-practice
+# springboot-istio-in-practice project
 
 A hands-on workspace for learning **Istio service mesh (ambient mode)** with **Spring Boot** microservices, built around a realistic domain: an **Order Management System for dental products**.
 
