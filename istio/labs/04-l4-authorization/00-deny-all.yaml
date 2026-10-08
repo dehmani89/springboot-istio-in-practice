@@ -1,0 +1,15 @@
+# Zero-trust baseline: an ALLOW policy with no rules denies everything in the namespace.
+# Apply the allow policies (01..05) together with this file.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: dental
+spec: {}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: dental-data
+spec: {}

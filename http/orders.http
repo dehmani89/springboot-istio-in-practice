@@ -1,0 +1,45 @@
+### Place an order (happy path) — note pricingEngineVersion in the response
+POST {{order}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "PRACTICE-2001",
+  "items": [
+    { "sku": "DEN-GLV-001", "quantity": 12 },
+    { "sku": "DEN-PRV-002", "quantity": 30 }
+  ]
+}
+
+### Force pricing v2 via header (mesh lab 06 — header must be propagated by order-service)
+POST {{order}}/api/orders
+Content-Type: application/json
+x-pricing-version: v2
+
+{
+  "customerId": "PRACTICE-2001",
+  "items": [ { "sku": "DEN-DSP-001", "quantity": 55 } ]
+}
+
+### Out of stock → 409 with shortages
+POST {{order}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "PRACTICE-2001",
+  "items": [ { "sku": "DEN-IMP-002", "quantity": 1 } ]
+}
+
+### Inactive product → 422
+POST {{order}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "PRACTICE-2001",
+  "items": [ { "sku": "DEN-END-001", "quantity": 1 } ]
+}
+
+### Order history for a practice (seeded)
+GET {{order}}/api/orders?customerId=PRACTICE-1002
+
+### Single seeded order
+GET {{order}}/api/orders/7b1e9c2a-0d1f-4c55-9a51-2f0c6a1d0001

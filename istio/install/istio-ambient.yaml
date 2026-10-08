@@ -1,0 +1,17 @@
+# Istio control plane + ambient data plane (istiod, istio-cni, ztunnel).
+#   istioctl install -f istio/install/istio-ambient.yaml -y
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: dental-oms-ambient
+spec:
+  profile: ambient
+  meshConfig:
+    # Envoy access logs on waypoints and gateways (ztunnel logs connections separately)
+    accessLogFile: /dev/stdout
+    # Tracing backend: the Jaeger add-on exposes a Zipkin-compatible collector at zipkin.istio-system:9411
+    extensionProviders:
+      - name: jaeger
+        zipkin:
+          service: zipkin.istio-system.svc.cluster.local
+          port: 9411

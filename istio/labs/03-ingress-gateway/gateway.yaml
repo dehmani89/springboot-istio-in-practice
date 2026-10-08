@@ -1,0 +1,30 @@
+# Kubernetes Gateway API ingress, in its own namespace.
+# Istio provisions a Deployment + LoadBalancer Service named "dental-gateway-istio"
+# (ServiceAccount of the same name). Docker Desktop maps the LoadBalancer to localhost:80.
+#
+# Why a separate namespace: gateways enforce namespace-wide AuthorizationPolicies. Keeping the
+# gateway out of "dental" means the lab 04 deny-all policy cannot accidentally block ingress.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dental-ingress
+  labels:
+    app.kubernetes.io/part-of: dental-oms
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: dental-gateway
+  namespace: dental-ingress
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: dental

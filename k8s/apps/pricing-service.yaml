@@ -1,0 +1,194 @@
+# Two Deployments of the SAME image, differing only in PRICING_ENGINE_VERSION.
+#   pricing-service     -> selects both versions (default round-robin; HTTPRoute overrides in lab 06)
+#   pricing-service-v1  -> v1 pods only  (backendRef target for traffic splitting)
+#   pricing-service-v2  -> v2 pods only
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pricing-service
+  namespace: dental
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pricing-service-db
+  namespace: dental
+type: Opaque
+stringData:
+  DB_USER: pricing_svc
+  DB_PASSWORD: pricing_svc_pw
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing-service
+  namespace: dental
+  labels:
+    app: pricing-service
+spec:
+  selector:
+    app: pricing-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing-service-v1
+  namespace: dental
+  labels:
+    app: pricing-service
+    version: v1
+spec:
+  selector:
+    app: pricing-service
+    version: v1
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing-service-v2
+  namespace: dental
+  labels:
+    app: pricing-service
+    version: v2
+spec:
+  selector:
+    app: pricing-service
+    version: v2
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing-service-v1
+  namespace: dental
+  labels:
+    app: pricing-service
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pricing-service
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: pricing-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: /actuator/prometheus
+    spec:
+      serviceAccountName: pricing-service
+      containers:
+        - name: pricing-service
+          image: dental-oms/pricing-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+          env:
+            - name: PRICING_ENGINE_VERSION
+              value: "v1"
+            - name: CHAOS_LATENCY_MS
+              value: "0"
+            - name: CHAOS_FAILURE_RATE
+              value: "0.0"
+            - name: DB_HOST
+              value: postgres.dental-data.svc.cluster.local
+            - name: DB_NAME
+              value: pricing_db
+          envFrom:
+            - secretRef:
+                name: pricing-service-db
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing-service-v2
+  namespace: dental
+  labels:
+    app: pricing-service
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pricing-service
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: pricing-service
+        version: v2
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: /actuator/prometheus
+    spec:
+      serviceAccountName: pricing-service
+      containers:
+        - name: pricing-service
+          image: dental-oms/pricing-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+          env:
+            - name: PRICING_ENGINE_VERSION
+              value: "v2"
+            - name: CHAOS_LATENCY_MS
+              value: "0"
+            - name: CHAOS_FAILURE_RATE
+              value: "0.0"
+            - name: DB_HOST
+              value: postgres.dental-data.svc.cluster.local
+            - name: DB_NAME
+              value: pricing_db
+          envFrom:
+            - secretRef:
+                name: pricing-service-db
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi

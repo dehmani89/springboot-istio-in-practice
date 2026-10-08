@@ -1,0 +1,34 @@
+# IMPORTANT: once a Service uses a waypoint, its pods see connections from the WAYPOINT identity,
+# not the original caller. The workload (ztunnel-enforced) policies from lab 04 must admit the
+# waypoint; caller-specific rules move to the waypoint (see 02-*.yaml, targetRefs: Service).
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: inventory-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: inventory-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental/sa/waypoint
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: pricing-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: pricing-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental/sa/waypoint

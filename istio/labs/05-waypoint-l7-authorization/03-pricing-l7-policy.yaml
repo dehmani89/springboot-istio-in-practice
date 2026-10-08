@@ -1,0 +1,20 @@
+# pricing-service via waypoint: only order-service, only the quote and price-lookup endpoints.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: pricing-service-l7
+  namespace: dental
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: pricing-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/dental/sa/order-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/pricing/*"]

@@ -1,0 +1,15 @@
+# Namespaces are created OUTSIDE the mesh on purpose.
+# Lab 02 enrolls them into ambient mode with a single label — no pod restarts.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dental
+  labels:
+    app.kubernetes.io/part-of: dental-oms
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dental-data
+  labels:
+    app.kubernetes.io/part-of: dental-oms

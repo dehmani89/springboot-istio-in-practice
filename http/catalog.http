@@ -1,0 +1,11 @@
+### All products
+GET {{catalog}}/api/products
+
+### By category
+GET {{catalog}}/api/products?category=Infection Control
+
+### Single product
+GET {{catalog}}/api/products/DEN-CMP-001
+
+### Unknown product → 404
+GET {{catalog}}/api/products/DEN-NOPE-999

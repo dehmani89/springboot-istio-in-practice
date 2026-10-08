@@ -1,0 +1,21 @@
+# Passive health checking at the waypoint. With NO HTTPRoute on pricing-service, its endpoints
+# are the v1 pod + v2 pod. When v2 returns repeated 5xx it is ejected and traffic drains to v1.
+#   kubectl delete httproute pricing-service -n dental
+#   kubectl set env deploy/pricing-service-v2 CHAOS_FAILURE_RATE=1.0
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: pricing-service
+  namespace: dental
+spec:
+  host: pricing-service.dental.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http1MaxPendingRequests: 50
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 5s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50

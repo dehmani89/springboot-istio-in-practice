@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: catalog-service            # becomes the SPIFFE identity: cluster.local/ns/dental/sa/catalog-service
+  namespace: dental
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: catalog-service-db
+  namespace: dental
+type: Opaque
+stringData:
+  DB_USER: catalog_svc
+  DB_PASSWORD: catalog_svc_pw
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: dental
+  labels:
+    app: catalog-service
+spec:
+  selector:
+    app: catalog-service
+  ports:
+    - name: http              # "http" name = explicit protocol selection for Istio
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  namespace: dental
+  labels:
+    app: catalog-service
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-service
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: /actuator/prometheus
+    spec:
+      serviceAccountName: catalog-service
+      containers:
+        - name: catalog-service
+          image: dental-oms/catalog-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: postgres.dental-data.svc.cluster.local
+            - name: DB_NAME
+              value: catalog_db
+          envFrom:
+            - secretRef:
+                name: catalog-service-db
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi

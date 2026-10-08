@@ -1,0 +1,19 @@
+# Only needed if lab 04 policies are applied: admit the sidecar namespace's catalog identity.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: postgres-allow-sidecar-catalog
+  namespace: dental-data
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental-sidecar/sa/catalog-service
+      to:
+        - operation:
+            ports: ["5432"]

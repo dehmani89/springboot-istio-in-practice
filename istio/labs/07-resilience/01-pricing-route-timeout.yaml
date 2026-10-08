@@ -1,0 +1,20 @@
+# Mesh-level timeout: the waypoint gives up after 1s and returns 504 to order-service,
+# well before order-service's own 5s read-timeout safety net.
+# Combine with:  kubectl set env deploy/pricing-service-v2 CHAOS_LATENCY_MS=3000
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pricing-service
+  namespace: dental
+spec:
+  parentRefs:
+    - group: ""
+      kind: Service
+      name: pricing-service
+      port: 80
+  rules:
+    - backendRefs:
+        - name: pricing-service-v2
+          port: 80
+      timeouts:
+        request: 1s

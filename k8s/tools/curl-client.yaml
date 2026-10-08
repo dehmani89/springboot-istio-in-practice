@@ -1,0 +1,35 @@
+# In-cluster test client with its own identity (cluster.local/ns/dental/sa/curl-client).
+# Used to prove what IS and IS NOT allowed once authorization policies are applied.
+#   kubectl exec -n dental deploy/curl-client -- curl -s http://catalog-service/api/products
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: curl-client
+  namespace: dental
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: curl-client
+  namespace: dental
+  labels:
+    app: curl-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: curl-client
+  template:
+    metadata:
+      labels:
+        app: curl-client
+    spec:
+      serviceAccountName: curl-client
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi

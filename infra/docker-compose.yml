@@ -1,0 +1,26 @@
+# Local development database (no Kubernetes, no Istio).
+#   docker compose -f infra/docker-compose.yml up -d
+# Host port defaults to 5432; override if you already run Postgres locally:
+#   OMS_PG_PORT=55432 docker compose -f infra/docker-compose.yml up -d   (then set DB_PORT=55432 for services)
+name: dental-oms
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: oms-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres-admin-pw
+    ports:
+      - "${OMS_PG_PORT:-5432}:5432"
+    volumes:
+      - oms-pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  oms-pgdata:

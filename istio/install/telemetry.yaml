@@ -1,0 +1,12 @@
+# Mesh-wide tracing: 100% sampling (lab environment only).
+# In ambient mode spans come from L7 proxies only — the ingress gateway and waypoints.
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  tracing:
+    - providers:
+        - name: jaeger
+      randomSamplingPercentage: 100

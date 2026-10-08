@@ -1,0 +1,18 @@
+# catalog-service: public read via gateway, plus internal calls from order-service and curl-client.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: catalog-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: catalog-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental-ingress/sa/dental-gateway-istio
+              - cluster.local/ns/dental/sa/order-service
+              - cluster.local/ns/dental/sa/curl-client

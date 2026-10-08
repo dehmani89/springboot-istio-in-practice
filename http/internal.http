@@ -1,0 +1,29 @@
+# Internal services — reachable only with the "local" environment.
+# In Kubernetes they are not exposed through the gateway (by design).
+
+### Stock levels
+GET {{inventory}}/api/inventory
+
+### Single SKU
+GET {{inventory}}/api/inventory/DEN-BUR-002
+
+### Reserve (idempotent on orderRef — send twice and compare "replayed")
+POST {{inventory}}/api/inventory/reservations
+Content-Type: application/json
+
+{ "orderRef": "manual-test-1", "items": [ { "sku": "DEN-GLV-001", "quantity": 2 } ] }
+
+### Release
+DELETE {{inventory}}/api/inventory/reservations/manual-test-1
+
+### Quote — v1 (list price)
+POST {{pricing}}/api/pricing/quotes
+Content-Type: application/json
+
+{ "items": [ { "sku": "DEN-GLV-001", "quantity": 30 } ] }
+
+### Quote — v2 (volume discount) — run a second pricing instance on 8093 with PRICING_ENGINE_VERSION=v2
+POST {{pricingV2}}/api/pricing/quotes
+Content-Type: application/json
+
+{ "items": [ { "sku": "DEN-GLV-001", "quantity": 30 } ] }

@@ -1,0 +1,17 @@
+# order-service: reachable from the ingress gateway and the curl test client.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: order-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental-ingress/sa/dental-gateway-istio
+              - cluster.local/ns/dental/sa/curl-client

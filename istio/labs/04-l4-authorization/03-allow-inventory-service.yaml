@@ -1,0 +1,16 @@
+# inventory-service: ONLY order-service may connect. curl-client is denied (connection reset).
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: inventory-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: inventory-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental/sa/order-service

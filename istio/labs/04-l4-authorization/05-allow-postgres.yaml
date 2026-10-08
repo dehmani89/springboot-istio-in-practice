@@ -1,0 +1,22 @@
+# Postgres: only the four application identities may open TCP connections on 5432.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: postgres-allow
+  namespace: dental-data
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental/sa/catalog-service
+              - cluster.local/ns/dental/sa/inventory-service
+              - cluster.local/ns/dental/sa/pricing-service
+              - cluster.local/ns/dental/sa/order-service
+      to:
+        - operation:
+            ports: ["5432"]

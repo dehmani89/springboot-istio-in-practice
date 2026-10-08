@@ -1,0 +1,20 @@
+# Reject any plaintext traffic to workloads in these namespaces.
+# Ambient already uses mTLS between enrolled workloads; STRICT removes the plaintext fallback
+# for callers that are NOT in the mesh.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: dental
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: dental-data
+spec:
+  mtls:
+    mode: STRICT

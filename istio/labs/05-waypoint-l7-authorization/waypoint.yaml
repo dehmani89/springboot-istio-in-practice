@@ -1,0 +1,15 @@
+# Namespace waypoint: an Envoy-based L7 proxy shared by the Services that opt in.
+# Equivalent CLI:  istioctl waypoint apply -n dental --name waypoint
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: waypoint
+  namespace: dental
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE

@@ -1,0 +1,22 @@
+# Canary: 90% v1 / 10% v2 for mesh-internal calls to pricing-service.
+# parentRefs -> Service (GAMMA pattern) means "routes for traffic addressed to this Service",
+# enforced by the waypoint.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pricing-service
+  namespace: dental
+spec:
+  parentRefs:
+    - group: ""
+      kind: Service
+      name: pricing-service
+      port: 80
+  rules:
+    - backendRefs:
+        - name: pricing-service-v1
+          port: 80
+          weight: 90
+        - name: pricing-service-v2
+          port: 80
+          weight: 10

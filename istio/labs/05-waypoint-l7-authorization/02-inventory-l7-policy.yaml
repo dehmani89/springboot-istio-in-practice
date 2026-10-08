@@ -1,0 +1,29 @@
+# Enforced BY THE WAYPOINT (targetRefs -> Service), so HTTP attributes are available.
+#   order-service : may reserve and release stock
+#   curl-client   : read-only (GET) — POST/DELETE returns HTTP 403 "RBAC: access denied"
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: inventory-service-l7
+  namespace: dental
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: inventory-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/dental/sa/order-service"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "DELETE"]
+            paths: ["/api/inventory", "/api/inventory/*"]
+    - from:
+        - source:
+            principals: ["cluster.local/ns/dental/sa/curl-client"]
+      to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/api/inventory", "/api/inventory/*"]

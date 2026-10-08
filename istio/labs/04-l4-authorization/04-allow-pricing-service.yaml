@@ -1,0 +1,16 @@
+# pricing-service (both versions): ONLY order-service may connect.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: pricing-service-allow
+  namespace: dental
+spec:
+  selector:
+    matchLabels:
+      app: pricing-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/dental/sa/order-service

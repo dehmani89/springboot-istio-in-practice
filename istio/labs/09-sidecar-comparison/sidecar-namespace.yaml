@@ -1,0 +1,7 @@
+# A separate namespace using classic SIDECAR injection, for side-by-side comparison.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dental-sidecar
+  labels:
+    istio-injection: enabled

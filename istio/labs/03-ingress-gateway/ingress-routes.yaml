@@ -1,0 +1,26 @@
+# Only order-service and catalog-service are exposed publicly.
+# inventory-service and pricing-service stay internal (no route = not reachable from outside).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dental-ingress
+  namespace: dental
+spec:
+  parentRefs:
+    - name: dental-gateway
+      namespace: dental-ingress
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/orders
+      backendRefs:
+        - name: order-service
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/products
+      backendRefs:
+        - name: catalog-service
+          port: 80
